@@ -24,8 +24,6 @@ export default function Home() {
   const [newEmployee, setNewEmployee] = useState({
     employeeName: "",
     designation: "",
-    basicSalary: "",
-    houseRent: "",
     joiningDate: "",
     phoneNumber: "",
     dateOfBirth: "",
@@ -38,6 +36,7 @@ export default function Home() {
 
     // Fetch employee data
     fetch("https://attendancemaker.onrender.com/employees")
+      // fetch("http://localhost:8000/employees")
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -49,9 +48,7 @@ export default function Home() {
           id: emp._id, // Ensure the ID is correctly formatted
           name: emp.employeeName,
           position: emp.designation,
-          basicSalary: emp.basicSalary,
-          houseRent: emp.houseRent,
-          joiningDate: emp.joiningDate,
+          joiningDate: new Date(emp.joiningDate).toLocaleDateString(),
           attendance: "Absent", // Default value for attendance
         }));
 
@@ -59,6 +56,7 @@ export default function Home() {
         const attendancePromises = formattedData.map((employee) =>
           fetch(
             `https://attendancemaker.onrender.com/attendanceStatus?employeeId=${employee.id}`
+            // `http://localhost:8000/attendanceStatus?employeeId=${employee.id}`
           )
             .then((response) => response.json())
             .then((attendanceData) => ({
@@ -85,6 +83,7 @@ export default function Home() {
 
   const handleAddEmployee = () => {
     fetch("https://attendancemaker.onrender.com/addEmployee", {
+      // fetch("http://localhost:8000/addEmployee", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -96,13 +95,7 @@ export default function Home() {
         dateOfBirth: newEmployee.dateOfBirth,
         joiningDate: newEmployee.joiningDate,
         activeEmployee: true,
-        basicSalary: newEmployee.basicSalary,
-        houseRent: newEmployee.houseRent,
-        medicalAllowance: 0,
-        providentFund: 0,
-        salary:
-          parseFloat(newEmployee.basicSalary) +
-          parseFloat(newEmployee.houseRent),
+        salary: 0, // You may need to update this field as per your requirements
         address: "",
       }),
     })
@@ -113,11 +106,9 @@ export default function Home() {
           setEmployees([
             ...employees,
             {
-              id: newEmployeeData._id.$oid, // Ensure the ID is correctly formatted
+              id: newEmployeeData._id, // Ensure the ID is correctly formatted
               name: newEmployeeData.employeeName,
               position: newEmployeeData.designation,
-              basicSalary: newEmployeeData.basicSalary,
-              houseRent: newEmployeeData.houseRent,
               joiningDate: newEmployeeData.joiningDate,
               attendance: "Absent", // Default value for new employee
             },
@@ -125,8 +116,6 @@ export default function Home() {
           setNewEmployee({
             employeeName: "",
             designation: "",
-            basicSalary: "",
-            houseRent: "",
             joiningDate: "",
             phoneNumber: "",
             dateOfBirth: "",
@@ -162,8 +151,6 @@ export default function Home() {
               <th className="py-2 border">ID</th>
               <th className="py-2 border">Name</th>
               <th className="py-2 border">Position</th>
-              <th className="py-2 border">Basic Pay</th>
-              <th className="py-2 border">HRA</th>
               <th className="py-2 border">Joining Date</th>
               <th className="py-2 border">Attendance</th>
             </tr>
@@ -174,10 +161,6 @@ export default function Home() {
                 <td className="py-2 border text-center">{employee.id}</td>
                 <td className="py-2 border">{employee.name}</td>
                 <td className="py-2 border">{employee.position}</td>
-                <td className="py-2 border text-right">
-                  {employee.basicSalary}
-                </td>
-                <td className="py-2 border text-right">{employee.houseRent}</td>
                 <td className="py-2 border text-center">
                   {employee.joiningDate}
                 </td>
@@ -207,30 +190,6 @@ export default function Home() {
           value={newEmployee.designation}
           onChange={(e) =>
             setNewEmployee({ ...newEmployee, designation: e.target.value })
-          }
-          className="border p-2 mb-2 w-full"
-        />
-        <input
-          type="number"
-          placeholder="Basic Pay"
-          value={newEmployee.basicSalary}
-          onChange={(e) =>
-            setNewEmployee({
-              ...newEmployee,
-              basicSalary: e.target.value,
-            })
-          }
-          className="border p-2 mb-2 w-full"
-        />
-        <input
-          type="number"
-          placeholder="HRA"
-          value={newEmployee.houseRent}
-          onChange={(e) =>
-            setNewEmployee({
-              ...newEmployee,
-              houseRent: e.target.value,
-            })
           }
           className="border p-2 mb-2 w-full"
         />
