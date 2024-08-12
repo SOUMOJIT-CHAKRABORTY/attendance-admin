@@ -110,7 +110,7 @@ export default function Home() {
 
   const handleAddEmployee = () => {
     // fetch("http://localhost:8000/addEmployee", {
-    fetch("http://attendancemaker.onrender.com/addEmployee", {
+    fetch("https://attendancemaker.onrender.com/addEmployee", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
