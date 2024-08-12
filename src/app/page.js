@@ -26,8 +26,17 @@ export default function Home() {
     designation: "",
     phoneNumber: "",
     dateOfBirth: "",
+    joiningDate: "",
     checkInLocation: "",
     mobileDetails: "",
+    activeEmployee: true,
+    salary: 0,
+    address: "",
+    basicSalary: 0,
+    houseRent: 0,
+    medicalAllowance: 0,
+    providentFund: 0,
+    pin: "", // Added pin
   });
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,15 +53,16 @@ export default function Home() {
         return response.json();
       })
       .then((employeeData) => {
-        // console.log(employeeData);
         const formattedData = employeeData.map((emp) => ({
-          id: emp._id, // Ensure the ID is correctly formatted
+          id: emp._id,
           name: emp.employeeName,
           position: emp.designation,
-          checkInLocation: emp.checkInLocation || "", // Handle check-in location
-          mobileDetails: emp.mobileDetails || "", // Handle mobile details
-          attendance: "Absent", // Default value for attendance
-          isAttendanceChanged: false, // New field to track attendance changes
+          checkInLocation: emp.checkInLocation || "",
+          mobileDetails: emp.mobileDetails || "",
+          checkoutLocation: emp.checkoutLocation || "", // Added checkoutLocation
+          checkoutMobileDetails: emp.checkoutMobileDetails || "", // Added checkoutMobileDetails
+          attendance: "Absent",
+          isAttendanceChanged: false,
         }));
 
         // Fetch attendance status for each employee
@@ -62,17 +72,22 @@ export default function Home() {
           )
             .then((response) => response.json())
             .then((attendanceData) => {
-              console.log("Attendance Data:", attendanceData); // Debugging log
-
+              console.log(attendanceData);
               return {
                 ...employee,
                 attendance: attendanceData.status,
                 checkInLocation: attendanceData.location
                   ? `(${attendanceData.location.latitude}, ${attendanceData.location.longitude})`
-                  : "No location", // Format location
+                  : "No location",
                 mobileDetails: attendanceData.mobileDetails
                   ? `IMEI: ${attendanceData.mobileDetails.imei}, Model: ${attendanceData.mobileDetails.model}`
-                  : "No mobile details", // Handle mobile details
+                  : "No mobile details",
+                checkOutLocation: attendanceData.checkOutLocation
+                  ? `(${attendanceData.checkOutLocation.latitude}, ${attendanceData.checkOutLocation.longitude})`
+                  : "No location", // Added checkOutLocation
+                checkOutMobileDetails: attendanceData.checkOutMobileDetails
+                  ? `IMEI: ${attendanceData.checkOutMobileDetails.imei}, Model: ${attendanceData.checkOutMobileDetails.model}`
+                  : "No mobile details", // Added checkOutMobileDetails
               };
             })
         );
@@ -94,7 +109,7 @@ export default function Home() {
   }, []);
 
   const handleAddEmployee = () => {
-    fetch("https://attendancemaker.onrender.com/addEmployee", {
+    fetch("http://localhost:8000/addEmployee", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -104,26 +119,28 @@ export default function Home() {
         designation: newEmployee.designation,
         phoneNumber: newEmployee.phoneNumber,
         dateOfBirth: newEmployee.dateOfBirth,
-        checkInLocation: newEmployee.checkInLocation,
-        mobileDetails: newEmployee.mobileDetails,
-        activeEmployee: true,
-        salary: 0, // You may need to update this field as per your requirements
-        address: "",
+        joiningDate: newEmployee.joiningDate,
+        activeEmployee: newEmployee.activeEmployee,
+        salary: newEmployee.salary,
+        address: newEmployee.address,
+        basicSalary: newEmployee.basicSalary,
+        houseRent: newEmployee.houseRent,
+        medicalAllowance: newEmployee.medicalAllowance,
+        providentFund: newEmployee.providentFund,
+        pin: newEmployee.pin, // Include PIN
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.message === "Employee saved successfully") {
-          const newEmployeeData = data.employee; // Use the newly created employee data from the response
+          const newEmployeeData = data.employee;
           setEmployees([
             ...employees,
             {
-              id: newEmployeeData._id, // Ensure the ID is correctly formatted
+              id: newEmployeeData._id,
               name: newEmployeeData.employeeName,
               position: newEmployeeData.designation,
-              checkInLocation: newEmployeeData.location || "", // Handle check-in location
-              mobileDetails: newEmployeeData.mobileDetails || "", // Handle mobile details
-              attendance: "Absent", // Default value for new employee
+              attendance: "Absent",
               isAttendanceChanged: false,
             },
           ]);
@@ -132,8 +149,15 @@ export default function Home() {
             designation: "",
             phoneNumber: "",
             dateOfBirth: "",
-            checkInLocation: "",
-            mobileDetails: "",
+            joiningDate: "",
+            activeEmployee: true,
+            salary: 0,
+            address: "",
+            basicSalary: 0,
+            houseRent: 0,
+            medicalAllowance: 0,
+            providentFund: 0,
+            pin: "", // Reset PIN
           });
           setShowModal(false);
         } else {
@@ -170,9 +194,7 @@ export default function Home() {
       .then((data) => {
         if (data.message === "Attendance updated successfully") {
           const updatedEmployees = employees.map((emp) =>
-            emp.id === id
-              ? { ...emp, isAttendanceChanged: false } // Reset the change flag
-              : emp
+            emp.id === id ? { ...emp, isAttendanceChanged: false } : emp
           );
           setEmployees(updatedEmployees);
         } else {
@@ -207,6 +229,8 @@ export default function Home() {
               <th className="py-2 border">Position</th>
               <th className="py-2 border">Check-in Location</th>
               <th className="py-2 border">Mobile Details</th>
+              <th className="py-2 border">Checkout Location</th>
+              <th className="py-2 border">Checkout Mobile Details</th>
               <th className="py-2 border">Attendance</th>
               <th className="py-2 border">Actions</th>
             </tr>
@@ -224,6 +248,12 @@ export default function Home() {
                   {employee.mobileDetails}
                 </td>
                 <td className="py-2 border text-center">
+                  {employee.checkOutLocation}
+                </td>
+                <td className="py-2 border text-center">
+                  {employee.checkOutMobileDetails}
+                </td>
+                <td className="py-2 border text-center">
                   <select
                     value={employee.attendance}
                     onChange={(e) =>
@@ -231,8 +261,8 @@ export default function Home() {
                     }
                     className="border p-2 rounded"
                   >
-                    <option value="Check In">Check In</option>
-                    <option value="Check Out">Check Out</option>
+                    <option value="Checked In">Checked In</option>
+                    <option value="Checked Out">Checked Out</option>
                     <option value="Absent">Absent</option>
                   </select>
                 </td>
@@ -243,7 +273,7 @@ export default function Home() {
                       !employee.isAttendanceChanged &&
                       "opacity-50 cursor-not-allowed"
                     }`}
-                    disabled={!employee.isAttendanceChanged} // Disable button if no changes made
+                    disabled={!employee.isAttendanceChanged}
                   >
                     Save
                   </button>
@@ -292,23 +322,25 @@ export default function Home() {
           }
           className="border p-2 mb-2 w-full"
         />
+        <label className="block mb-2 text-gray-500">Joining Date</label>
         <input
-          type="text"
-          placeholder="Check-in Location"
-          value={newEmployee.checkInLocation}
+          type="date"
+          value={newEmployee.joiningDate}
           onChange={(e) =>
-            setNewEmployee({ ...newEmployee, checkInLocation: e.target.value })
+            setNewEmployee({ ...newEmployee, joiningDate: e.target.value })
           }
           className="border p-2 mb-2 w-full"
         />
+        <label className="block mb-2 text-gray-500">PIN</label>
         <input
           type="text"
-          placeholder="Mobile Details"
-          value={newEmployee.mobileDetails}
+          placeholder="4-digit PIN"
+          value={newEmployee.pin}
           onChange={(e) =>
-            setNewEmployee({ ...newEmployee, mobileDetails: e.target.value })
+            setNewEmployee({ ...newEmployee, pin: e.target.value })
           }
-          className="border p-2 mb-4 w-full"
+          className="border p-2 mb-2 w-full"
+          maxLength="4"
         />
         <button
           onClick={handleAddEmployee}
