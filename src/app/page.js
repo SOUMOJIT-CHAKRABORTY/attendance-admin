@@ -24,9 +24,10 @@ export default function Home() {
   const [newEmployee, setNewEmployee] = useState({
     employeeName: "",
     designation: "",
-    joiningDate: "",
     phoneNumber: "",
     dateOfBirth: "",
+    checkInLocation: "",
+    mobileDetails: "",
   });
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,7 +37,6 @@ export default function Home() {
 
     // Fetch employee data
     fetch("https://attendancemaker.onrender.com/employees")
-      // fetch("http://localhost:8000/employees")
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -44,25 +44,37 @@ export default function Home() {
         return response.json();
       })
       .then((employeeData) => {
+        // console.log(employeeData);
         const formattedData = employeeData.map((emp) => ({
           id: emp._id, // Ensure the ID is correctly formatted
           name: emp.employeeName,
           position: emp.designation,
-          joiningDate: new Date(emp.joiningDate).toLocaleDateString(),
+          checkInLocation: emp.checkInLocation || "", // Handle check-in location
+          mobileDetails: emp.mobileDetails || "", // Handle mobile details
           attendance: "Absent", // Default value for attendance
+          isAttendanceChanged: false, // New field to track attendance changes
         }));
 
         // Fetch attendance status for each employee
         const attendancePromises = formattedData.map((employee) =>
           fetch(
             `https://attendancemaker.onrender.com/attendanceStatus?employeeId=${employee.id}`
-            // `http://localhost:8000/attendanceStatus?employeeId=${employee.id}`
           )
             .then((response) => response.json())
-            .then((attendanceData) => ({
-              ...employee,
-              attendance: attendanceData.status,
-            }))
+            .then((attendanceData) => {
+              console.log("Attendance Data:", attendanceData); // Debugging log
+
+              return {
+                ...employee,
+                attendance: attendanceData.status,
+                checkInLocation: attendanceData.location
+                  ? `(${attendanceData.location.latitude}, ${attendanceData.location.longitude})`
+                  : "No location", // Format location
+                mobileDetails: attendanceData.mobileDetails
+                  ? `IMEI: ${attendanceData.mobileDetails.imei}, Model: ${attendanceData.mobileDetails.model}`
+                  : "No mobile details", // Handle mobile details
+              };
+            })
         );
 
         Promise.all(attendancePromises)
@@ -83,7 +95,6 @@ export default function Home() {
 
   const handleAddEmployee = () => {
     fetch("https://attendancemaker.onrender.com/addEmployee", {
-      // fetch("http://localhost:8000/addEmployee", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -93,7 +104,8 @@ export default function Home() {
         designation: newEmployee.designation,
         phoneNumber: newEmployee.phoneNumber,
         dateOfBirth: newEmployee.dateOfBirth,
-        joiningDate: newEmployee.joiningDate,
+        checkInLocation: newEmployee.checkInLocation,
+        mobileDetails: newEmployee.mobileDetails,
         activeEmployee: true,
         salary: 0, // You may need to update this field as per your requirements
         address: "",
@@ -109,16 +121,19 @@ export default function Home() {
               id: newEmployeeData._id, // Ensure the ID is correctly formatted
               name: newEmployeeData.employeeName,
               position: newEmployeeData.designation,
-              joiningDate: newEmployeeData.joiningDate,
+              checkInLocation: newEmployeeData.location || "", // Handle check-in location
+              mobileDetails: newEmployeeData.mobileDetails || "", // Handle mobile details
               attendance: "Absent", // Default value for new employee
+              isAttendanceChanged: false,
             },
           ]);
           setNewEmployee({
             employeeName: "",
             designation: "",
-            joiningDate: "",
             phoneNumber: "",
             dateOfBirth: "",
+            checkInLocation: "",
+            mobileDetails: "",
           });
           setShowModal(false);
         } else {
@@ -126,6 +141,45 @@ export default function Home() {
         }
       })
       .catch((error) => console.error("Error adding employee:", error));
+  };
+
+  const handleAttendanceChange = (id, newStatus) => {
+    const updatedEmployees = employees.map((employee) =>
+      employee.id === id
+        ? { ...employee, attendance: newStatus, isAttendanceChanged: true }
+        : employee
+    );
+    setEmployees(updatedEmployees);
+  };
+
+  const handleSaveAttendance = (id) => {
+    const employee = employees.find((emp) => emp.id === id);
+
+    fetch(`https://attendancemaker.onrender.com/updateAttendance`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        employeeId: id,
+        status: employee.attendance,
+        name: employee.name,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === "Attendance updated successfully") {
+          const updatedEmployees = employees.map((emp) =>
+            emp.id === id
+              ? { ...emp, isAttendanceChanged: false } // Reset the change flag
+              : emp
+          );
+          setEmployees(updatedEmployees);
+        } else {
+          console.error("Failed to update attendance");
+        }
+      })
+      .catch((error) => console.error("Error updating attendance:", error));
   };
 
   return (
@@ -151,8 +205,10 @@ export default function Home() {
               <th className="py-2 border">ID</th>
               <th className="py-2 border">Name</th>
               <th className="py-2 border">Position</th>
-              <th className="py-2 border">Joining Date</th>
+              <th className="py-2 border">Check-in Location</th>
+              <th className="py-2 border">Mobile Details</th>
               <th className="py-2 border">Attendance</th>
+              <th className="py-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -162,10 +218,35 @@ export default function Home() {
                 <td className="py-2 border">{employee.name}</td>
                 <td className="py-2 border">{employee.position}</td>
                 <td className="py-2 border text-center">
-                  {employee.joiningDate}
+                  {employee.checkInLocation}
                 </td>
                 <td className="py-2 border text-center">
-                  {employee.attendance}
+                  {employee.mobileDetails}
+                </td>
+                <td className="py-2 border text-center">
+                  <select
+                    value={employee.attendance}
+                    onChange={(e) =>
+                      handleAttendanceChange(employee.id, e.target.value)
+                    }
+                    className="border p-2 rounded"
+                  >
+                    <option value="Check In">Check In</option>
+                    <option value="Check Out">Check Out</option>
+                    <option value="Absent">Absent</option>
+                  </select>
+                </td>
+                <td className="py-2 border text-center">
+                  <button
+                    onClick={() => handleSaveAttendance(employee.id)}
+                    className={`bg-green-500 text-white p-2 rounded ${
+                      !employee.isAttendanceChanged &&
+                      "opacity-50 cursor-not-allowed"
+                    }`}
+                    disabled={!employee.isAttendanceChanged} // Disable button if no changes made
+                  >
+                    Save
+                  </button>
                 </td>
               </tr>
             ))}
@@ -193,15 +274,6 @@ export default function Home() {
           }
           className="border p-2 mb-2 w-full"
         />
-        <label className="block mb-2 text-gray-500">Joining Date</label>
-        <input
-          type="date"
-          value={newEmployee.joiningDate}
-          onChange={(e) =>
-            setNewEmployee({ ...newEmployee, joiningDate: e.target.value })
-          }
-          className="border p-2 mb-2 w-full"
-        />
         <label className="block mb-2 text-gray-500">Date of Birth</label>
         <input
           type="date"
@@ -217,6 +289,24 @@ export default function Home() {
           value={newEmployee.phoneNumber}
           onChange={(e) =>
             setNewEmployee({ ...newEmployee, phoneNumber: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <input
+          type="text"
+          placeholder="Check-in Location"
+          value={newEmployee.checkInLocation}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, checkInLocation: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <input
+          type="text"
+          placeholder="Mobile Details"
+          value={newEmployee.mobileDetails}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, mobileDetails: e.target.value })
           }
           className="border p-2 mb-4 w-full"
         />
