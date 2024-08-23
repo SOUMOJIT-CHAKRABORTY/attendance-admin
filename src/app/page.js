@@ -40,8 +40,6 @@ export default function Home() {
   });
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null); // State to track selected employee for viewing details
-  const [showEmployeeModal, setShowEmployeeModal] = useState(false); // State to control employee details modal
 
   useEffect(() => {
     setLoading(true);
@@ -111,6 +109,7 @@ export default function Home() {
   }, []);
 
   const handleAddEmployee = () => {
+    // fetch("http://localhost:8000/addEmployee", {
     fetch("https://attendancemaker.onrender.com/addEmployee", {
       method: "POST",
       headers: {
@@ -206,11 +205,6 @@ export default function Home() {
       .catch((error) => console.error("Error updating attendance:", error));
   };
 
-  const handleViewDetails = (employee) => {
-    setSelectedEmployee(employee);
-    setShowEmployeeModal(true);
-  };
-
   return (
     <main className="p-4">
       <div className="flex justify-between items-center mb-4">
@@ -234,6 +228,11 @@ export default function Home() {
               <th className="py-2 border">ID</th>
               <th className="py-2 border">Name</th>
               <th className="py-2 border">Position</th>
+              <th className="py-2 border">Check-in Location</th>
+              <th className="py-2 border">Mobile Details</th>
+              <th className="py-2 border">Checkout Location</th>
+              <th className="py-2 border">Checkout Mobile Details</th>
+              <th className="py-2 border">Attendance</th>
               <th className="py-2 border">Actions</th>
             </tr>
           </thead>
@@ -244,11 +243,40 @@ export default function Home() {
                 <td className="py-2 border">{employee.name}</td>
                 <td className="py-2 border">{employee.position}</td>
                 <td className="py-2 border text-center">
-                  <button
-                    onClick={() => handleViewDetails(employee)}
-                    className="bg-blue-500 text-white p-2 rounded"
+                  {employee.checkInLocation}
+                </td>
+                <td className="py-2 border text-center">
+                  {employee.mobileDetails}
+                </td>
+                <td className="py-2 border text-center">
+                  {employee.checkOutLocation}
+                </td>
+                <td className="py-2 border text-center">
+                  {employee.checkOutMobileDetails}
+                </td>
+                <td className="py-2 border text-center">
+                  <select
+                    value={employee.attendance}
+                    onChange={(e) =>
+                      handleAttendanceChange(employee.id, e.target.value)
+                    }
+                    className="border p-2 rounded"
                   >
-                    View Details
+                    <option value="Checked In">Checked In</option>
+                    <option value="Checked Out">Checked Out</option>
+                    <option value="Absent">Absent</option>
+                  </select>
+                </td>
+                <td className="py-2 border text-center">
+                  <button
+                    onClick={() => handleSaveAttendance(employee.id)}
+                    className={`bg-green-500 text-white p-2 rounded ${
+                      !employee.isAttendanceChanged &&
+                      "opacity-50 cursor-not-allowed"
+                    }`}
+                    disabled={!employee.isAttendanceChanged}
+                  >
+                    Save
                   </button>
                 </td>
               </tr>
@@ -257,29 +285,70 @@ export default function Home() {
         </table>
       )}
 
-      {/* Modal to add new employee */}
       <Modal show={showModal} onClose={() => setShowModal(false)}>
-        <h2 className="text-2xl mb-4">Add Employee</h2>
-        {/* Add employee form */}
-        <button onClick={handleAddEmployee} className="bg-green-500 text-white p-2 rounded">
+        <h2 className="text-2xl font-bold mb-4">Add New Employee</h2>
+        <input
+          type="text"
+          placeholder="Name"
+          value={newEmployee.employeeName}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, employeeName: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <input
+          type="text"
+          placeholder="Position"
+          value={newEmployee.designation}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, designation: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <label className="block mb-2 text-gray-500">Date of Birth</label>
+        <input
+          type="date"
+          value={newEmployee.dateOfBirth}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, dateOfBirth: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <input
+          type="text"
+          placeholder="Phone Number"
+          value={newEmployee.phoneNumber}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, phoneNumber: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <label className="block mb-2 text-gray-500">Joining Date</label>
+        <input
+          type="date"
+          value={newEmployee.joiningDate}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, joiningDate: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <label className="block mb-2 text-gray-500">PIN</label>
+        <input
+          type="text"
+          placeholder="4-digit PIN"
+          value={newEmployee.pin}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, pin: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+          maxLength="4"
+        />
+        <button
+          onClick={handleAddEmployee}
+          className="bg-blue-500 text-white p-2 w-full rounded"
+        >
           Add Employee
         </button>
-      </Modal>
-
-      {/* Modal to view employee details */}
-      <Modal show={showEmployeeModal} onClose={() => setShowEmployeeModal(false)}>
-        {selectedEmployee && (
-          <div>
-            <h2 className="text-2xl mb-4">Employee Details</h2>
-            <p><strong>ID:</strong> {selectedEmployee.id}</p>
-            <p><strong>Name:</strong> {selectedEmployee.name}</p>
-            <p><strong>Position:</strong> {selectedEmployee.position}</p>
-            <p><strong>Check-In Location:</strong> {selectedEmployee.checkInLocation}</p>
-            <p><strong>Mobile Details:</strong> {selectedEmployee.mobileDetails}</p>
-            <p><strong>Check-Out Location:</strong> {selectedEmployee.checkOutLocation}</p>
-            <p><strong>Check-Out Mobile Details:</strong> {selectedEmployee.checkOutMobileDetails}</p>
-          </div>
-        )}
       </Modal>
     </main>
   );
