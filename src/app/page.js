@@ -6,10 +6,10 @@ import { useState, useEffect } from "react";
 function Modal({ show, onClose, children }) {
   if (!show) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg relative">
         <button
-          className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
           onClick={onClose}
         >
           &times;
@@ -126,7 +126,6 @@ export default function Home() {
   }, []);
 
   const handleAddEmployee = () => {
-    // fetch("http://localhost:8000/addEmployee", {
     fetch("https://attendancemaker.onrender.com/addEmployee", {
       method: "POST",
       headers: {
@@ -223,160 +222,243 @@ export default function Home() {
   };
 
   return (
-    <main className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-4xl font-bold">Admin View</h1>
+    <main className="p-6 bg-gray-100 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-4xl font-extrabold text-gray-800">Admin View</h1>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-500 text-white p-2 rounded"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-200"
         >
           Add Employee
         </button>
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center">
-          <div className="loader"></div>
+        <div className="flex justify-center items-center min-h-[300px]">
+          <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full"></div>
         </div>
       ) : (
-        <table className="min-w-full bg-white border">
-          <thead>
-            <tr>
-              {/* <th className="py-2 border">ID</th> */}
-              <th className="py-2 border">Name</th>
-              <th className="py-2 border">Position</th>
-              <th className="py-2 border">Check-in Location</th>
-              <th className="py-2 border">Mobile Details</th>
-              <th className="py-2 border">Checkout Location</th>
-              <th className="py-2 border">Checkout Mobile Details</th>
-              <th className="py-2 border">Attendance</th>
-              <th className="py-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees.map((employee) => (
-              <tr key={employee.id}>
-                {/* <td className="py-2 border text-center">{employee.id}</td> */}
-                <td className="py-2 border">{employee.name}</td>
-                <td className="py-2 border">{employee.position}</td>
-                <td className="py-2 border text-center">
-                  {employee.checkInLocation}
-                </td>
-                <td className="py-2 border text-center">
-                  {employee.mobileDetails}
-                </td>
-                <td className="py-2 border text-center">
-                  {employee.checkOutLocation}
-                </td>
-                <td className="py-2 border text-center">
-                  {employee.checkOutMobileDetails}
-                </td>
-                <td className="py-2 border text-center">
-                  <select
-                    value={employee.attendance}
-                    onChange={(e) =>
-                      handleAttendanceChange(employee.id, e.target.value)
-                    }
-                    className="border p-2 rounded"
-                  >
-                    <option value="Checked In">Checked In</option>
-                    <option value="Checked Out">Checked Out</option>
-                    <option value="Absent">Absent</option>
-                  </select>
-                </td>
-                <td className="py-2 border text-center">
-                  <button
-                    onClick={() => handleSaveAttendance(employee.id)}
-                    className={`bg-green-500 text-white p-2 rounded ${
-                      !employee.isAttendanceChanged &&
-                      "opacity-50 cursor-not-allowed"
-                    }`}
-                    disabled={!employee.isAttendanceChanged}
-                  >
-                    Save
-                  </button>
-                </td>
-                <td className="py-2 border text-center">
-                  <button
-                    onClick={() => {
-                      console.log(employee);
-                      handleViewUser(employee);
-                    }}
-                    className="bg-blue-500 text-white p-2 rounded"
-                  >
-                    View
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+            <thead className="bg-gray-200 text-gray-600 uppercase text-xs">
+              <tr>
+                <th className="py-3 px-4 border-b">Name</th>
+                <th className="py-3 px-4 border-b">Position</th>
+                <th className="py-3 px-4 border-b">Check-in Location</th>
+                <th className="py-3 px-4 border-b">Mobile Details</th>
+                <th className="py-3 px-4 border-b">Checkout Location</th>
+                <th className="py-3 px-4 border-b">Checkout Mobile Details</th>
+                <th className="py-3 px-4 border-b">Attendance</th>
+                <th className="py-3 px-4 border-b">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {employees.map((employee) => (
+                <tr
+                  key={employee.id}
+                  className="hover:bg-gray-50 transition duration-200"
+                >
+                  <td className="py-3 px-4 border-b">{employee.name}</td>
+                  <td className="py-3 px-4 border-b">{employee.position}</td>
+                  <td className="py-3 px-4 border-b">
+                    {employee.checkInLocation}
+                  </td>
+                  <td className="py-3 px-4 border-b">
+                    {employee.mobileDetails}
+                  </td>
+                  <td className="py-3 px-4 border-b">
+                    {employee.checkOutLocation}
+                  </td>
+                  <td className="py-3 px-4 border-b">
+                    {employee.checkOutMobileDetails}
+                  </td>
+                  <td className="py-3 px-4 border-b">
+                    <select
+                      value={employee.attendance}
+                      onChange={(e) =>
+                        handleAttendanceChange(employee.id, e.target.value)
+                      }
+                      className="p-1 border border-gray-300 rounded-md"
+                    >
+                      <option value="Present">Present</option>
+                      <option value="Absent">Absent</option>
+                      <option value="Checked In">Checked In</option>
+                      <option value="Checked Out">Checked Out</option>
+                    </select>
+                  </td>
+                  <td className="py-3 px-4 border-b">
+                    <button
+                      onClick={() => handleViewUser(employee)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleSaveAttendance(employee.id)}
+                      className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 ml-2"
+                    >
+                      Save
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <Modal show={showModal} onClose={() => setShowModal(false)}>
-        <h2 className="text-2xl font-bold mb-4">Add New Employee</h2>
-        <input
-          type="text"
-          placeholder="Name"
-          value={newEmployee.employeeName}
-          onChange={(e) =>
-            setNewEmployee({ ...newEmployee, employeeName: e.target.value })
-          }
-          className="border p-2 mb-2 w-full"
-        />
-        <input
-          type="text"
-          placeholder="Position"
-          value={newEmployee.designation}
-          onChange={(e) =>
-            setNewEmployee({ ...newEmployee, designation: e.target.value })
-          }
-          className="border p-2 mb-2 w-full"
-        />
-        <label className="block mb-2 text-gray-500">Date of Birth</label>
-        <input
-          type="date"
-          value={newEmployee.dateOfBirth}
-          onChange={(e) =>
-            setNewEmployee({ ...newEmployee, dateOfBirth: e.target.value })
-          }
-          className="border p-2 mb-2 w-full"
-        />
-        <input
-          type="text"
-          placeholder="Phone Number"
-          value={newEmployee.phoneNumber}
-          onChange={(e) =>
-            setNewEmployee({ ...newEmployee, phoneNumber: e.target.value })
-          }
-          className="border p-2 mb-2 w-full"
-        />
-        <label className="block mb-2 text-gray-500">Joining Date</label>
-        <input
-          type="date"
-          value={newEmployee.joiningDate}
-          onChange={(e) =>
-            setNewEmployee({ ...newEmployee, joiningDate: e.target.value })
-          }
-          className="border p-2 mb-2 w-full"
-        />
-        <label className="block mb-2 text-gray-500">PIN</label>
-        <input
-          type="text"
-          placeholder="4-digit PIN"
-          value={newEmployee.pin}
-          onChange={(e) =>
-            setNewEmployee({ ...newEmployee, pin: e.target.value })
-          }
-          className="border p-2 mb-2 w-full"
-          maxLength="4"
-        />
-        <button
-          onClick={handleAddEmployee}
-          className="bg-blue-500 text-white p-2 w-full rounded"
-        >
-          Add Employee
-        </button>
+        <h2 className="text-xl font-semibold mb-4">Add New Employee</h2>
+        <div className="space-y-4">
+          <input
+            type="text"
+            value={newEmployee.employeeName}
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, employeeName: e.target.value })
+            }
+            placeholder="Name"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          <input
+            type="text"
+            value={newEmployee.designation}
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, designation: e.target.value })
+            }
+            placeholder="Position"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          <input
+            type="text"
+            value={newEmployee.phoneNumber}
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, phoneNumber: e.target.value })
+            }
+            placeholder="Phone Number"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          <label className="flex items-center space-x-4">Date of Birth</label>
+          <input
+            type="date"
+            value={newEmployee.dateOfBirth}
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, dateOfBirth: e.target.value })
+            }
+            placeholder="Date of Birth"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          <label className="flex items-center space-x-4">Date of Joining</label>
+          <input
+            type="date"
+            value={newEmployee.joiningDate}
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, joiningDate: e.target.value })
+            }
+            placeholder="Joining Date"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          {/* <input
+            type="text"
+            value={newEmployee.checkInLocation}
+            onChange={(e) =>
+              setNewEmployee({
+                ...newEmployee,
+                checkInLocation: e.target.value,
+              })
+            }
+            placeholder="Check-in Location"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          /> */}
+          {/* <input
+            type="text"
+            value={newEmployee.mobileDetails}
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, mobileDetails: e.target.value })
+            }
+            placeholder="Mobile Details"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          /> */}
+          <input
+            type="text"
+            value={newEmployee.address}
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, address: e.target.value })
+            }
+            placeholder="Address"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          {/* <input
+            type="number"
+            value={newEmployee.basicSalary}
+            onChange={(e) =>
+              setNewEmployee({
+                ...newEmployee,
+                basicSalary: Number(e.target.value),
+              })
+            }
+            placeholder="Basic Salary"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          <input
+            type="number"
+            value={newEmployee.houseRent}
+            onChange={(e) =>
+              setNewEmployee({
+                ...newEmployee,
+                houseRent: Number(e.target.value),
+              })
+            }
+            placeholder="House Rent"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          <input
+            type="number"
+            value={newEmployee.medicalAllowance}
+            onChange={(e) =>
+              setNewEmployee({
+                ...newEmployee,
+                medicalAllowance: Number(e.target.value),
+              })
+            }
+            placeholder="Medical Allowance"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          <input
+            type="number"
+            value={newEmployee.providentFund}
+            onChange={(e) =>
+              setNewEmployee({
+                ...newEmployee,
+                providentFund: Number(e.target.value),
+              })
+            }
+            placeholder="Provident Fund"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          /> */}
+          <input
+            type="text"
+            value={newEmployee.pin}
+            onChange={(e) =>
+              setNewEmployee({ ...newEmployee, pin: e.target.value })
+            }
+            placeholder="PIN"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+        </div>
+        <div className="mt-4 flex justify-end space-x-4">
+          <button
+            onClick={() => setShowModal(false)}
+            className="bg-gray-500 text-white px-4 py-2 rounded-md"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAddEmployee}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Add Employee
+          </button>
+        </div>
       </Modal>
     </main>
   );
