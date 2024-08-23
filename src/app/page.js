@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 // Modal Component
@@ -41,6 +42,14 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const router = useRouter();
+  const handleViewUser = (employee) => {
+    const employeeData = JSON.stringify(employee);
+    router.push(
+      `/employee/${employee.id}?data=${encodeURIComponent(employeeData)}`
+    );
+  };
+
   useEffect(() => {
     setLoading(true);
 
@@ -50,9 +59,11 @@ export default function Home() {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
         return response.json();
       })
       .then((employeeData) => {
+        console.log(employeeData);
         const formattedData = employeeData.map((emp) => ({
           id: emp._id,
           name: emp.employeeName,
@@ -63,6 +74,12 @@ export default function Home() {
           checkoutMobileDetails: emp.checkoutMobileDetails || "", // Added checkoutMobileDetails
           attendance: "Absent",
           isAttendanceChanged: false,
+          activeEmployee: emp.activeEmployee,
+          phoneNumber: emp.phoneNumber,
+          address: emp.address,
+          dateOfBirth: emp.dateOfBirth,
+          joiningDate: emp.joiningDate,
+          pin: emp.pin, // Added pin
         }));
 
         // Fetch attendance status for each employee
@@ -225,7 +242,7 @@ export default function Home() {
         <table className="min-w-full bg-white border">
           <thead>
             <tr>
-              <th className="py-2 border">ID</th>
+              {/* <th className="py-2 border">ID</th> */}
               <th className="py-2 border">Name</th>
               <th className="py-2 border">Position</th>
               <th className="py-2 border">Check-in Location</th>
@@ -239,7 +256,7 @@ export default function Home() {
           <tbody>
             {employees.map((employee) => (
               <tr key={employee.id}>
-                <td className="py-2 border text-center">{employee.id}</td>
+                {/* <td className="py-2 border text-center">{employee.id}</td> */}
                 <td className="py-2 border">{employee.name}</td>
                 <td className="py-2 border">{employee.position}</td>
                 <td className="py-2 border text-center">
@@ -277,6 +294,17 @@ export default function Home() {
                     disabled={!employee.isAttendanceChanged}
                   >
                     Save
+                  </button>
+                </td>
+                <td className="py-2 border text-center">
+                  <button
+                    onClick={() => {
+                      console.log(employee);
+                      handleViewUser(employee);
+                    }}
+                    className="bg-blue-500 text-white p-2 rounded"
+                  >
+                    View
                   </button>
                 </td>
               </tr>
