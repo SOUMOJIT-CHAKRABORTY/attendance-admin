@@ -21,7 +21,6 @@ function Modal({ show, onClose, children }) {
 
 export default function Home() {
   const [employees, setEmployees] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState(null); // State to store selected employee's details
   const [newEmployee, setNewEmployee] = useState({
     employeeName: "",
     designation: "",
@@ -40,7 +39,6 @@ export default function Home() {
     pin: "", // Added pin
   });
   const [showModal, setShowModal] = useState(false);
-  const [showEmployeeModal, setShowEmployeeModal] = useState(false); // Modal to show employee details
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -74,6 +72,7 @@ export default function Home() {
           )
             .then((response) => response.json())
             .then((attendanceData) => {
+              console.log(attendanceData);
               return {
                 ...employee,
                 attendance: attendanceData.status,
@@ -109,18 +108,8 @@ export default function Home() {
       });
   }, []);
 
-  // Function to fetch full employee details
-  const handleViewDetails = (id) => {
-    fetch(`https://attendancemaker.onrender.com/employee/${id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setSelectedEmployee(data);
-        setShowEmployeeModal(true); // Show modal with employee details
-      })
-      .catch((error) => console.error("Error fetching employee details:", error));
-  };
-
   const handleAddEmployee = () => {
+    // fetch("http://localhost:8000/addEmployee", {
     fetch("https://attendancemaker.onrender.com/addEmployee", {
       method: "POST",
       headers: {
@@ -179,6 +168,43 @@ export default function Home() {
       .catch((error) => console.error("Error adding employee:", error));
   };
 
+  const handleAttendanceChange = (id, newStatus) => {
+    const updatedEmployees = employees.map((employee) =>
+      employee.id === id
+        ? { ...employee, attendance: newStatus, isAttendanceChanged: true }
+        : employee
+    );
+    setEmployees(updatedEmployees);
+  };
+
+  const handleSaveAttendance = (id) => {
+    const employee = employees.find((emp) => emp.id === id);
+
+    fetch(`https://attendancemaker.onrender.com/updateAttendance`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        employeeId: id,
+        status: employee.attendance,
+        name: employee.name,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === "Attendance updated successfully") {
+          const updatedEmployees = employees.map((emp) =>
+            emp.id === id ? { ...emp, isAttendanceChanged: false } : emp
+          );
+          setEmployees(updatedEmployees);
+        } else {
+          console.error("Failed to update attendance");
+        }
+      })
+      .catch((error) => console.error("Error updating attendance:", error));
+  };
+
   return (
     <main className="p-4">
       <div className="flex justify-between items-center mb-4">
@@ -229,15 +255,28 @@ export default function Home() {
                   {employee.checkOutMobileDetails}
                 </td>
                 <td className="py-2 border text-center">
-                  {employee.attendance}
+                  <select
+                    value={employee.attendance}
+                    onChange={(e) =>
+                      handleAttendanceChange(employee.id, e.target.value)
+                    }
+                    className="border p-2 rounded"
+                  >
+                    <option value="Checked In">Checked In</option>
+                    <option value="Checked Out">Checked Out</option>
+                    <option value="Absent">Absent</option>
+                  </select>
                 </td>
                 <td className="py-2 border text-center">
-                  {/* Button to view full details */}
                   <button
-                    onClick={() => handleViewDetails(employee.id)}
-                    className="bg-yellow-500 text-white p-2 rounded"
+                    onClick={() => handleSaveAttendance(employee.id)}
+                    className={`bg-green-500 text-white p-2 rounded ${
+                      !employee.isAttendanceChanged &&
+                      "opacity-50 cursor-not-allowed"
+                    }`}
+                    disabled={!employee.isAttendanceChanged}
                   >
-                    View Details
+                    Save
                   </button>
                 </td>
               </tr>
@@ -246,24 +285,70 @@ export default function Home() {
         </table>
       )}
 
-      {/* Modal to add new employee */}
       <Modal show={showModal} onClose={() => setShowModal(false)}>
-        <h2 className="text-2xl font-bold mb-4">Add Employee</h2>
-        {/* Form for adding new employee */}
-        {/* Include fields here */}
-      </Modal>
-
-      {/* Modal to view employee details */}
-      <Modal show={showEmployeeModal} onClose={() => setShowEmployeeModal(false)}>
-        <h2 className="text-2xl font-bold mb-4">Employee Details</h2>
-        {selectedEmployee && (
-          <div>
-            <p>ID: {selectedEmployee._id}</p>
-            <p>Name: {selectedEmployee.employeeName}</p>
-            <p>Designation: {selectedEmployee.designation}</p>
-            {/* Add more employee details here */}
-          </div>
-        )}
+        <h2 className="text-2xl font-bold mb-4">Add New Employee</h2>
+        <input
+          type="text"
+          placeholder="Name"
+          value={newEmployee.employeeName}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, employeeName: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <input
+          type="text"
+          placeholder="Position"
+          value={newEmployee.designation}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, designation: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <label className="block mb-2 text-gray-500">Date of Birth</label>
+        <input
+          type="date"
+          value={newEmployee.dateOfBirth}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, dateOfBirth: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <input
+          type="text"
+          placeholder="Phone Number"
+          value={newEmployee.phoneNumber}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, phoneNumber: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <label className="block mb-2 text-gray-500">Joining Date</label>
+        <input
+          type="date"
+          value={newEmployee.joiningDate}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, joiningDate: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+        />
+        <label className="block mb-2 text-gray-500">PIN</label>
+        <input
+          type="text"
+          placeholder="4-digit PIN"
+          value={newEmployee.pin}
+          onChange={(e) =>
+            setNewEmployee({ ...newEmployee, pin: e.target.value })
+          }
+          className="border p-2 mb-2 w-full"
+          maxLength="4"
+        />
+        <button
+          onClick={handleAddEmployee}
+          className="bg-blue-500 text-white p-2 w-full rounded"
+        >
+          Add Employee
+        </button>
       </Modal>
     </main>
   );
