@@ -111,9 +111,10 @@ export default function Home() {
             address: emp.address,
             dateOfBirth: emp.dateOfBirth,
             joiningDate: emp.joiningDate,
-            salary: emp.basicSalary,
+            salary: emp.salary,
             pin: emp.pin,
           }));
+          console.log("Formatted data:", formattedData);
 
           // Fetch attendance status for each employee
           const attendancePromises = formattedData.map((employee) =>
