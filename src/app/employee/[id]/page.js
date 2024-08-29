@@ -22,11 +22,12 @@ export default function EmployeeDetails() {
     const fetchEmployeeData = async () => {
       try {
         const response = await fetch(
-          `https://attendancemaker.onrender.com/employeeDetails/${employeeId}` // Replace 123 with the actual employee ID
+          `https://attendancemaker.onrender.com/employee/${employeeId}` // Replace 123 with the actual employee ID
         );
         if (response.ok) {
           const data = await response.json();
-          setEmployee(data);
+          console.log(data);
+          setEmployee(data.employee);
           setFormData({
             phoneNumber: data.phoneNumber || "",
             address: data.address || "",
