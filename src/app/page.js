@@ -41,9 +41,7 @@ export default function Home() {
 
   const handleViewUser = (employee) => {
     const employeeData = JSON.stringify(employee);
-    router.push(
-      `/employee/${employee.id}?data=${encodeURIComponent(employeeData)}`
-    );
+    router.push(`/employee/${employee.id}?empid=${employee.id}`);
   };
 
   const handleAddEmployee = () => {

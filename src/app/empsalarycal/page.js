@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function EmpSalaryCal() {
+function EmpSalaryCalComponent() {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [employee, setEmployee] = useState({});
   const router = useRouter();
@@ -15,17 +15,20 @@ export default function EmpSalaryCal() {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        setEmployee(data);
+        setEmployee(data.employee);
       })
       .catch((error) => {
         console.error("Error fetching employee data:", error);
       });
 
     // Fetch employee attendance records
-    fetch(`https://attendancemaker.onrender.com/attendance/${employeeId}`)
+    fetch(
+      `https://attendancemaker.onrender.com/attendanceHistory?employeeId=${employeeId}`
+    )
       .then((response) => response.json())
       .then((attendanceData) => {
-        setAttendanceRecords(attendanceData);
+        console.log(attendanceData);
+        setAttendanceRecords(attendanceData.attendanceRecords);
       })
       .catch((error) => {
         console.error("Error fetching attendance records:", error);
@@ -70,5 +73,13 @@ export default function EmpSalaryCal() {
         Back to Admin View
       </button>
     </div>
+  );
+}
+
+export default function EmpSalaryCal() {
+  return (
+    <Suspense fallback={<div>Loading employee data...</div>}>
+      <EmpSalaryCalComponent />
+    </Suspense>
   );
 }

@@ -1,40 +1,55 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function EmployeeDetails() {
-  const searchParams = useSearchParams();
   const [employee, setEmployee] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     phoneNumber: "",
     address: "",
     dateOfBirth: "",
     joiningDate: "",
     pin: "",
-    salary: "", // Add salary field to form data
+    salary: "",
   });
 
   useEffect(() => {
-    const employeeData = searchParams.get("data");
-    // console.log("Employee data:", employeeData);
-    if (employeeData) {
-      const parsedData = JSON.parse(employeeData);
-      setEmployee(parsedData);
-      setFormData({
-        phoneNumber: parsedData.phoneNumber || "",
-        address: parsedData.address || "",
-        dateOfBirth: parsedData.dateOfBirth
-          ? new Date(parsedData.dateOfBirth).toISOString().split("T")[0]
-          : "",
-        joiningDate: parsedData.joiningDate
-          ? new Date(parsedData.joiningDate).toISOString().split("T")[0]
-          : "",
-        pin: parsedData.pin || "",
-        salary: parsedData.salary || "", // Initialize salary
-      });
-    }
-  }, [searchParams]);
+    // Replace with the appropriate API endpoint to fetch employee details
+    const employeeId = searchParams.get("empid");
+    const fetchEmployeeData = async () => {
+      try {
+        const response = await fetch(
+          `https://attendancemaker.onrender.com/employeeDetails/${employeeId}` // Replace 123 with the actual employee ID
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setEmployee(data);
+          setFormData({
+            phoneNumber: data.phoneNumber || "",
+            address: data.address || "",
+            dateOfBirth: data.dateOfBirth
+              ? new Date(data.dateOfBirth).toISOString().split("T")[0]
+              : "",
+            joiningDate: data.joiningDate
+              ? new Date(data.joiningDate).toISOString().split("T")[0]
+              : "",
+            pin: data.pin || "",
+            salary: data.salary || "",
+          });
+        } else {
+          alert("Failed to fetch employee details.");
+        }
+      } catch (error) {
+        console.error("Error fetching employee data:", error);
+        alert("An error occurred while fetching employee details.");
+      }
+    };
+
+    fetchEmployeeData();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -51,7 +66,7 @@ export default function EmployeeDetails() {
       const response = await fetch(
         `https://attendancemaker.onrender.com/updateEmployee/${employee.id}`,
         {
-          method: "PUT", // Use "POST" or "PUT" depending on your backend
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
