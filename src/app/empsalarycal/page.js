@@ -41,30 +41,36 @@ function EmpSalaryCalComponent() {
         Attendance Records for {employee.employeeName}
       </h1>
 
-      <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
-        <thead className="bg-gray-200 text-gray-600 uppercase text-xs">
-          <tr>
-            <th className="py-3 px-4 border-b">Date</th>
-            <th className="py-3 px-4 border-b">Status</th>
-            <th className="py-3 px-4 border-b">Check-in Time</th>
-            <th className="py-3 px-4 border-b">Check-out Time</th>
-            <th className="py-3 px-4 border-b">Location</th>
-          </tr>
-        </thead>
-        <tbody>
-          {attendanceRecords.map((record, index) => (
-            <tr key={index} className="hover:bg-gray-50">
-              <td className="py-3 px-4 border-b">{record.date}</td>
-              <td className="py-3 px-4 border-b">{record.status}</td>
-              <td className="py-3 px-4 border-b">{record.checkInTime}</td>
-              <td className="py-3 px-4 border-b">{record.checkOutTime}</td>
-              <td className="py-3 px-4 border-b">
-                {record.location.latitude}, {record.location.longitude}
-              </td>
+      {attendanceRecords?.length > 0 ? (
+        <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+          <thead className="bg-gray-200 text-gray-600 uppercase text-xs">
+            <tr>
+              <th className="py-3 px-4 border-b">Date</th>
+              <th className="py-3 px-4 border-b">Status</th>
+              <th className="py-3 px-4 border-b">Check-in Time</th>
+              <th className="py-3 px-4 border-b">Check-out Time</th>
+              <th className="py-3 px-4 border-b">Location</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {attendanceRecords.map((record, index) => (
+              <tr key={index} className="hover:bg-gray-50">
+                <td className="py-3 px-4 border-b">{record.date}</td>
+                <td className="py-3 px-4 border-b">{record.status}</td>
+                <td className="py-3 px-4 border-b">{record.checkInTime}</td>
+                <td className="py-3 px-4 border-b">{record.checkOutTime}</td>
+                <td className="py-3 px-4 border-b">
+                  {record.location?.latitude}, {record.location?.longitude}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div className="text-center text-gray-500">
+          No attendance records available for this employee.
+        </div>
+      )}
 
       <button
         onClick={() => router.push("/")}
