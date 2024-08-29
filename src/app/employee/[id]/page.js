@@ -17,28 +17,28 @@ export default function EmployeeDetails() {
   });
 
   useEffect(() => {
-    // Replace with the appropriate API endpoint to fetch employee details
     const employeeId = searchParams.get("empid");
     const fetchEmployeeData = async () => {
       try {
         const response = await fetch(
-          `https://attendancemaker.onrender.com/employee/${employeeId}` // Replace 123 with the actual employee ID
+          `https://attendancemaker.onrender.com/employee/${employeeId}`
         );
         if (response.ok) {
           const data = await response.json();
-          console.log(data);
           setEmployee(data.employee);
+
+          // Populate the formData with the fetched employee data
           setFormData({
-            phoneNumber: data.phoneNumber || "",
-            address: data.address || "",
-            dateOfBirth: data.dateOfBirth
-              ? new Date(data.dateOfBirth).toISOString().split("T")[0]
+            phoneNumber: data.employee.phoneNumber || "",
+            address: data.employee.address || "",
+            dateOfBirth: data.employee.dateOfBirth
+              ? new Date(data.employee.dateOfBirth).toISOString().split("T")[0]
               : "",
-            joiningDate: data.joiningDate
-              ? new Date(data.joiningDate).toISOString().split("T")[0]
+            joiningDate: data.employee.joiningDate
+              ? new Date(data.employee.joiningDate).toISOString().split("T")[0]
               : "",
-            pin: data.pin || "",
-            salary: data.salary || "",
+            pin: data.employee.pin || "",
+            salary: data.employee.salary || "",
           });
         } else {
           alert("Failed to fetch employee details.");
@@ -50,7 +50,7 @@ export default function EmployeeDetails() {
     };
 
     fetchEmployeeData();
-  }, []);
+  }, [searchParams]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -65,7 +65,7 @@ export default function EmployeeDetails() {
 
     try {
       const response = await fetch(
-        `https://attendancemaker.onrender.com/updateEmployee/${employee.id}`,
+        `https://attendancemaker.onrender.com/updateEmployee/${employee._id}`,
         {
           method: "PUT",
           headers: {
@@ -267,7 +267,7 @@ export default function EmployeeDetails() {
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             onClick={handleSave}
           >
-            Save
+            Save Changes
           </button>
         ) : (
           <button
@@ -275,6 +275,14 @@ export default function EmployeeDetails() {
             onClick={() => setIsEditing(true)}
           >
             Edit
+          </button>
+        )}
+        {isEditing && (
+          <button
+            className="ml-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+            onClick={() => setIsEditing(false)}
+          >
+            Cancel
           </button>
         )}
       </div>
