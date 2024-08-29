@@ -201,6 +201,10 @@ export default function Home() {
     setIsAuthenticated(false);
   };
 
+  const handleRedirectToSalaryPage = (employeeId) => {
+    router.push(`/empsalarycal?employeeId=${employeeId}`);
+  };
+
   if (!isAuthenticated) {
     return (
       <main className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -287,6 +291,26 @@ export default function Home() {
                       <option value="Checked Out">Checked Out</option>
                     </select>
                   </td>
+                  {/* <td className="py-3 px-4 border-b flex space-x-2">
+                    <button
+                      onClick={() => handleViewUser(employee)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleSaveAttendance(employee.id)}
+                      className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => handleDeleteEmployee(employee.id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </td> */}
                   <td className="py-3 px-4 border-b flex space-x-2">
                     <button
                       onClick={() => handleViewUser(employee)}
@@ -305,6 +329,12 @@ export default function Home() {
                       className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
                     >
                       Delete
+                    </button>
+                    <button
+                      onClick={() => handleRedirectToSalaryPage(employee.id)}
+                      className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600"
+                    >
+                      Salary & Attendance
                     </button>
                   </td>
                 </tr>
