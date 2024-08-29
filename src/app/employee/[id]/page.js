@@ -12,10 +12,12 @@ export default function EmployeeDetails() {
     dateOfBirth: "",
     joiningDate: "",
     pin: "",
+    salary: "", // Add salary field to form data
   });
 
   useEffect(() => {
     const employeeData = searchParams.get("data");
+    // console.log("Employee data:", employeeData);
     if (employeeData) {
       const parsedData = JSON.parse(employeeData);
       setEmployee(parsedData);
@@ -29,6 +31,7 @@ export default function EmployeeDetails() {
           ? new Date(parsedData.joiningDate).toISOString().split("T")[0]
           : "",
         pin: parsedData.pin || "",
+        salary: parsedData.salary || "", // Initialize salary
       });
     }
   }, [searchParams]);
@@ -193,6 +196,30 @@ export default function EmployeeDetails() {
                 {new Date(employee.joiningDate).toLocaleDateString()}
               </p>
             </div>
+          )}
+        </div>
+
+        {/* Salary Information */}
+        <div className="p-4 border rounded-lg bg-gray-50">
+          <h3 className="text-xl font-semibold">Salary Information</h3>
+          {isEditing ? (
+            <div>
+              <label className="block">
+                <span>Salary:</span>
+                <input
+                  type="number"
+                  name="salary"
+                  value={formData.salary}
+                  onChange={handleInputChange}
+                  className="block w-full mt-1 p-2 border rounded"
+                />
+              </label>
+            </div>
+          ) : (
+            <p>
+              <strong>Salary:</strong>{" "}
+              {employee.salary ? `₹${employee.salary}` : "N/A"}
+            </p>
           )}
         </div>
 
