@@ -26,6 +26,7 @@ export default function EmployeeDetails() {
         if (response.ok) {
           const data = await response.json();
           setEmployee(data.employee);
+          console.log(data.employee);
 
           // Populate the formData with the fetched employee data
           setFormData({
@@ -38,7 +39,7 @@ export default function EmployeeDetails() {
               ? new Date(data.employee.joiningDate).toISOString().split("T")[0]
               : "",
             pin: data.employee.pin || "",
-            salary: data.employee.salary || "",
+            salary: data.employee.basicSalary || "N/A",
           });
         } else {
           alert("Failed to fetch employee details.");
@@ -234,7 +235,7 @@ export default function EmployeeDetails() {
           ) : (
             <p>
               <strong>Salary:</strong>{" "}
-              {employee.salary ? `₹${employee.salary}` : "N/A"}
+              {employee.basicSalary ? `₹${employee.basicSalary}` : "N/A"}
             </p>
           )}
         </div>

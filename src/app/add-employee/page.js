@@ -11,12 +11,12 @@ export default function AddEmployee() {
     joiningDate: "",
     address: "",
     basicSalary: 0,
-    hra: 0,
+    houseRent: 0,
     travelingAllowance: 0,
-    grossSalary: 0,
+    salary: 0,
     employeeContribution: 0,
-    pf: 0,
-    esicMedicalIns: 0,
+    providentFund: 0,
+    medicalAllowance: 0,
     pin: "",
   });
 

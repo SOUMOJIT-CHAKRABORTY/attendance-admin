@@ -1,10 +1,14 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import * as XLSX from "xlsx";
 
 function EmpSalaryCalComponent() {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [filteredRecords, setFilteredRecords] = useState([]);
   const [employee, setEmployee] = useState({});
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const employeeId = searchParams.get("employeeId");
@@ -14,7 +18,6 @@ function EmpSalaryCalComponent() {
     fetch(`https://attendancemaker.onrender.com/employee/${employeeId}`)
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         setEmployee(data.employee);
       })
       .catch((error) => {
@@ -27,13 +30,33 @@ function EmpSalaryCalComponent() {
     )
       .then((response) => response.json())
       .then((attendanceData) => {
-        console.log(attendanceData);
         setAttendanceRecords(attendanceData.attendanceRecords);
+        setFilteredRecords(attendanceData.attendanceRecords); // Initially, all records are shown
       })
       .catch((error) => {
         console.error("Error fetching attendance records:", error);
       });
   }, [employeeId]);
+
+  // Filter records based on date range
+  const filterRecords = () => {
+    const filtered = attendanceRecords.filter((record) => {
+      const recordDate = new Date(record.date);
+      const from = fromDate ? new Date(fromDate) : null;
+      const to = toDate ? new Date(toDate) : null;
+
+      return (!from || recordDate >= from) && (!to || recordDate <= to);
+    });
+    setFilteredRecords(filtered);
+  };
+
+  // Export filtered data to Excel
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredRecords);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Records");
+    XLSX.writeFile(workbook, "attendance_records.xlsx");
+  };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -41,7 +64,31 @@ function EmpSalaryCalComponent() {
         Attendance Records for {employee.employeeName}
       </h1>
 
-      {attendanceRecords?.length > 0 ? (
+      {/* Date Range Filters */}
+      <div className="mb-4">
+        <label className="mr-2">From:</label>
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          className="border p-2 rounded-md mr-4"
+        />
+        <label className="mr-2">To:</label>
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          className="border p-2 rounded-md mr-4"
+        />
+        <button
+          onClick={filterRecords}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+        >
+          Apply Filters
+        </button>
+      </div>
+
+      {filteredRecords.length > 0 ? (
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
           <thead className="bg-gray-200 text-gray-600 uppercase text-xs">
             <tr>
@@ -53,7 +100,7 @@ function EmpSalaryCalComponent() {
             </tr>
           </thead>
           <tbody>
-            {attendanceRecords.map((record, index) => (
+            {filteredRecords.map((record, index) => (
               <tr key={index} className="hover:bg-gray-50">
                 <td className="py-3 px-4 border-b">{record.date}</td>
                 <td className="py-3 px-4 border-b">{record.status}</td>
@@ -72,9 +119,17 @@ function EmpSalaryCalComponent() {
         </div>
       )}
 
+      {/* Export to Excel Button */}
+      <button
+        onClick={exportToExcel}
+        className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+      >
+        Export to Excel
+      </button>
+
       <button
         onClick={() => router.push("/")}
-        className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+        className="mt-6 ml-4 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
       >
         Back to Admin View
       </button>
